@@ -28,113 +28,234 @@ let botState = {
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
-        <title>${config.name} Status</title>
+        <title>${config.name} Dashboard</title>
+        <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+          
+          :root {
+            --bg: #0f172a;
+            --container-bg: #111827;
+            --card-bg: #1f2937;
+            --accent: #2dd4bf;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+          }
+
           body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
           }
+
           .container {
-            background: #1e293b;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 0 50px rgba(45, 212, 191, 0.2);
+            background: var(--container-bg);
+            padding: 3rem 2rem;
+            border-radius: 2rem;
+            width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid #1f2937;
             text-align: center;
-            width: 400px;
-            border: 1px solid #334155;
-            transition: box-shadow 0.3s ease;
           }
-          h1 { margin-bottom: 30px; font-size: 24px; color: #ccfbf1; display: flex; align-items: center; justify-content: center; gap: 10px; }
-          .stat-card {
-            background: #0f172a;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 10px;
-            border: 1px solid #1e3a5f;
+
+          h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: #f1f5f9;
           }
-          .stat-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
-          .stat-value { font-size: 22px; font-weight: 700; color: #2dd4bf; margin-top: 5px; }
-          .live-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #4ade80; animation: pulse 1.5s infinite; }
-          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-          #status-text { font-size: 14px; padding: 6px 14px; border-radius: 20px; background: #134e4a; color: #5eead4; display: inline-block; margin-bottom: 20px; }
-          a { color: #38bdf8; font-size: 13px; text-decoration: none; }
+
+          .card {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1.25rem 1.75rem;
+            margin-bottom: 1rem;
+            text-align: left;
+            border-left: 4px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+          }
+          
+          .card:hover { transform: translateX(5px); }
+
+          .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+          }
+
+          .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 0 0 15px rgba(45, 212, 191, 0.3);
+          }
+
+          .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+            display: inline-block;
+          }
+
+          .dot.offline {
+            background: #f87171;
+            box-shadow: 0 0 10px #f87171;
+          }
+
+          .pulse {
+            animation: pulse-animation 2s infinite;
+          }
+
+          @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+          }
+          
+          .offline.pulse {
+            animation: pulse-offline 2s infinite;
+          }
+          
+          @keyframes pulse-offline {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(248, 113, 113, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+          }
+
+          .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            background: var(--accent);
+            color: #0f172a;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(45, 212, 191, 0.6);
+            filter: brightness(1.1);
+          }
+
+          .footer {
+            margin-top: 1.5rem;
+            font-size: 0.8125rem;
+            color: #4b5563;
+          }
         </style>
       </head>
       <body>
-        <div class="container" id="container">
-          <h1><span id="live-indicator" class="live-indicator" style="color:#4ade80">&#9679;</span> ${config.name}</h1>
-          <div id="status-text">Connecting...</div>
-          <div class="stat-card">
-            <div class="stat-label">Uptime</div>
-            <div class="stat-value" id="uptime-text">--</div>
+        <div class="container">
+          <h1>🤖 ${config.name}</h1>
+          
+          <div class="card">
+            <div class="label">Status</div>
+            <div class="value">
+              <span id="status-dot" class="dot pulse"></span>
+              <span id="status-text">Connecting...</span>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Location</div>
-            <div class="stat-value" id="coords-text" style="font-size:14px">Unknown Location</div>
+
+          <div class="card">
+            <div class="label">Uptime</div>
+            <div class="value" id="uptime-text">0h 0m 0s</div>
           </div>
-          <br>
-          <a href="/tutorial">Setup Guide</a>
+
+          <div class="card">
+            <div class="label">Coordinates</div>
+            <div class="value">
+              📍 <span id="coords-text">Searching...</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="label">Server</div>
+            <div class="value" style="font-size: 1.1rem; color: #5eead4;">${config.server.ip}</div>
+          </div>
+
+          <a href="/tutorial" class="btn">📘 View Setup Guide</a>
+          
+          <div class="footer">Auto-refreshing every 5s</div>
         </div>
+
         <script>
+          const statusText = document.getElementById('status-text');
+          const statusDot = document.getElementById('status-dot');
+          const uptimeText = document.getElementById('uptime-text');
+          const coordsText = document.getElementById('coords-text');
+
           function formatUptime(s) {
             const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
             return h + 'h ' + m + 'm ' + sec + 's';
           }
-          const statusText = document.getElementById('status-text');
-          const uptimeText = document.getElementById('uptime-text');
-          const coordsText = document.getElementById('coords-text');
-          const liveDot = document.getElementById('live-indicator');
-          const container = document.getElementById('container');
 
-          const updateStats = async () => {
+          async function update() {
             try {
               const r = await fetch('/health');
               const data = await r.json();
+              
               if (data.status === 'connected') {
-                statusText.innerText = 'Online';
-                statusText.style.background = '#14532d';
-                statusText.style.color = '#4ade80';
-                liveDot.style.color = '#4ade80';
-                container.style.boxShadow = '0 0 50px rgba(74, 222, 128, 0.2)';
+                statusText.innerText = 'Online & Running';
+                statusDot.className = 'dot pulse';
               } else {
                 statusText.innerText = 'Reconnecting...';
-                statusText.style.background = '#450a0a';
-                statusText.style.color = '#f87171';
-                liveDot.style.color = '#f87171';
-                container.style.boxShadow = '0 0 50px rgba(248, 113, 113, 0.2)';
+                statusDot.className = 'dot offline pulse';
               }
+
               uptimeText.innerText = formatUptime(data.uptime);
+              
               if (data.coords) {
-                coordsText.innerText = 'Coords: ' + Math.floor(data.coords.x) + ', ' + Math.floor(data.coords.y) + ', ' + Math.floor(data.coords.z);
+                coordsText.innerText = Math.floor(data.coords.x) + ', ' + Math.floor(data.coords.y) + ', ' + Math.floor(data.coords.z);
               } else {
-                coordsText.innerText = 'Unknown Location';
+                coordsText.innerText = 'Searching Position...';
               }
             } catch (e) {
-              document.getElementById('status-text').innerText = 'System Offline';
-              document.getElementById('live-indicator').style.color = '#64748b';
+              statusText.innerText = 'System Offline';
+              statusDot.className = 'dot offline';
             }
-          };
-          setInterval(updateStats, 1000);
-          updateStats();
+          }
+
+          setInterval(update, 5000);
+          update();
         </script>
       </body>
     </html>
   `);
 });
-
 app.get('/tutorial', (req, res) => {
   res.send(`
-    <html>
+  < html >
       <head>
         <title>${config.name} - Setup Guide</title>
         <style>
@@ -179,7 +300,7 @@ app.get('/tutorial', (req, res) => {
         </div>
         <p style="text-align: center; margin-top: 40px; color: #64748b;">AFK Bot Dashboard</p>
       </body>
-    </html>
+    </html >
   `);
 });
 
@@ -198,15 +319,15 @@ app.get('/ping', (req, res) => res.send('pong'));
 
 // FIX: handle port conflict gracefully - try next port if taken
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Server] HTTP server started on port ${server.address().port}`);
+  console.log(`[Server] HTTP server started on port ${server.address().port} `);
 });
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     const fallbackPort = PORT + 1;
-    console.log(`[Server] Port ${PORT} in use - trying port ${fallbackPort}`);
+    console.log(`[Server] Port ${PORT} in use - trying port ${fallbackPort} `);
     server.listen(fallbackPort, '0.0.0.0');
   } else {
-    console.log(`[Server] HTTP server error: ${err.message}`);
+    console.log(`[Server] HTTP server error: ${err.message} `);
   }
 });
 
@@ -215,7 +336,7 @@ function formatUptime(seconds) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return `${h}h ${m}m ${s}s`;
+  return `${h}h ${m}m ${s} s`;
 }
 
 // ============================================================
@@ -255,10 +376,25 @@ setInterval(() => {
 // ============================================================
 // BOT CREATION WITH RECONNECTION LOGIC
 // ============================================================
+// ============================================================
+// RECONNECTION & TIMEOUT MANAGEMENT
+// ============================================================
 let bot = null;
 let activeIntervals = [];
-let reconnectTimeout = null;
+let reconnectTimeoutId = null;
+let connectionTimeoutId = null;
 let isReconnecting = false;
+
+function clearBotTimeouts() {
+  if (reconnectTimeoutId) {
+    clearTimeout(reconnectTimeoutId);
+    reconnectTimeoutId = null;
+  }
+  if (connectionTimeoutId) {
+    clearTimeout(connectionTimeoutId);
+    connectionTimeoutId = null;
+  }
+}
 
 // FIX: Discord rate limiting - track last send time
 let lastDiscordSend = 0;
@@ -331,7 +467,8 @@ function createBot() {
     bot.loadPlugin(pathfinder);
 
     // FIX: connection timeout - end the old bot before reconnecting to avoid ghost bots
-    const connectionTimeout = setTimeout(() => {
+    clearBotTimeouts();
+    connectionTimeoutId = setTimeout(() => {
       if (!botState.connected) {
         console.log('[Bot] Connection timeout - no spawn received');
         try {
@@ -350,7 +487,7 @@ function createBot() {
       if (spawnHandled) return;
       spawnHandled = true;
 
-      clearTimeout(connectionTimeout);
+      clearBotTimeouts();
       botState.connected = true;
       botState.lastActivity = Date.now();
       botState.reconnectAttempts = 0;
@@ -439,10 +576,7 @@ function createBot() {
 }
 
 function scheduleReconnect() {
-  if (reconnectTimeout) {
-    clearTimeout(reconnectTimeout);
-    reconnectTimeout = null;
-  }
+  clearBotTimeouts();
 
   // FIX: don't stack reconnect if already waiting
   if (isReconnecting) {
@@ -456,8 +590,8 @@ function scheduleReconnect() {
   const delay = getReconnectDelay();
   console.log(`[Bot] Reconnecting in ${delay / 1000}s (attempt #${botState.reconnectAttempts})`);
 
-  reconnectTimeout = setTimeout(() => {
-    reconnectTimeout = null;
+  reconnectTimeoutId = setTimeout(() => {
+    reconnectTimeoutId = null;
     isReconnecting = false;
     createBot();
   }, delay);
